@@ -1,0 +1,45 @@
+﻿<Window x:Class="ImagesFromExcel.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ImagesFromExcel"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+    <GroupBox Header="Settings">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="120"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <Label>Excel file</Label>
+        <TextBox Grid.Column="1" x:Name="TextBoxExcelFile" HorizontalAlignment="Stretch"></TextBox>
+        <Button Grid.Row="0" Grid.Column="2" Width="20" x:Name="ButtonSelectExcelFile" Click="ButtonSelectExcelFile_OnClick">...</Button>
+
+        <Label Grid.Row="1">Out put directory</Label>
+        <TextBox Grid.Row="1" Grid.Column="1" x:Name="TextBoxOutputDirectory"></TextBox>
+        <Button Grid.Row="1" Grid.Column="2" Width="20" x:Name="ButtonBrowseOutputDirectory" Click="ButtonBrowseOutputDirectory_OnClick">...</Button>
+      </Grid>
+    </GroupBox>
+
+    <Button Grid.Row="1" Click="Button_Click" Width="200" IsEnabled="False" x:Name="ButtonSaveImages">Save images</Button>
+
+    <GroupBox Grid.Row="2" Header="Output">
+      <TextBlock Background="Black" Foreground="White" x:Name="TextBlockConsole"></TextBlock>
+    </GroupBox>
+
+    
+  </Grid>
+</Window>
