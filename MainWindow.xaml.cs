@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Reflection;
@@ -47,19 +48,65 @@ namespace ImagesFromExcel
         Worksheet sheet = workbook.Worksheets[0];
 
         var exportedPictures = 0;
+        var failedExports = 0;
+        var failureMsgs = new List<string>();
         foreach (var sheetPicture in sheet.Pictures)
         {
           var top = sheetPicture.Top;
-          var test = sheetPicture as XlsShape;
-          var topRow = test.TopRow;
-          var topRowOffset = test.TopRowOffset;
+          using (var pictureShape = sheetPicture as XlsShape)
+          {
+            if (pictureShape == null)
+            {
+              continue;
+            }
 
-          var fileName = sheet.Range[$"A{topRow}"].Text;
-          sheetPicture.Picture.Save(System.IO.Path.Combine(path, $"{fileName}.png"), ImageFormat.Png);
-          exportedPictures++;
+            var leftColumn = pictureShape.LeftColumn;
+            if (leftColumn < 2)
+            {
+              failedExports++;
+              continue;
+            }
+
+            var topRow = pictureShape.TopRow;
+
+            var fileNameColumn = char.ConvertFromUtf32(leftColumn - 2 + 65);
+
+            var range = sheet.Range[$"{fileNameColumn}{topRow}"];
+
+            string fileName;
+            if (!string.IsNullOrWhiteSpace(range.NumberText))
+            {
+              fileName = range.NumberText;
+            }
+            else
+            {
+              fileName = range.Text;
+            }
+
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+              failedExports++;
+              failureMsgs.Add($"No filename could be determined for image at: column:{leftColumn} - row: {topRow}");
+              continue;
+            }
+
+            sheetPicture.Picture.Save(System.IO.Path.Combine(path, $"{fileName}.png"), ImageFormat.Png);
+            exportedPictures++;
+          }
         }
 
         LogMessage($"Exported {exportedPictures} pictures!");
+        if (failedExports > 0)
+        {
+          LogMessage($"Failed exports: {failedExports}.");
+          LogMessage(String.Empty);
+          LogMessage(String.Empty);
+
+          foreach (var msg in failureMsgs)
+          {
+            LogMessage(msg);
+          }
+        }
       }
       catch (Exception exception)
       {
@@ -82,10 +129,8 @@ namespace ImagesFromExcel
       {
         return;
       }
-      
-      TextBoxExcelFile.Text = openFileDialog.FileName;
 
-      ButtonSaveImages.IsEnabled = InputValid();
+      TextBoxExcelFile.Text = openFileDialog.FileName;
     }
 
     private void ButtonBrowseOutputDirectory_OnClick(object sender, RoutedEventArgs e)
@@ -102,8 +147,6 @@ namespace ImagesFromExcel
           TextBoxOutputDirectory.Text = dialog.SelectedPath;
         }
       };
-
-      ButtonSaveImages.IsEnabled = InputValid();
     }
 
     private bool InputValid()
@@ -133,6 +176,16 @@ namespace ImagesFromExcel
       {
         TextBlockConsole.Text += Environment.NewLine + msg;
       }
+    }
+
+    private void TextBoxExcelFile_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+    {
+      InputValid();
+    }
+
+    private void TextBoxOutputDirectory_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+    {
+      InputValid();
     }
   }
 }
